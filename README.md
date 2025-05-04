@@ -99,10 +99,6 @@ CREATE ROLE backup_user WITH REPLICATION LOGIN PASSWORD 'yourPassword';
 
 ---
 
-Hier ist ein schön formulierter Abschnitt für die Checksum-Überprüfung, passend zum Stil deiner README:
-
----
-
 ## 🔍 Checksum Verification
 
 To verify the integrity of your backup files, you can use the generated SHA256 checksums. This ensures that none of the files have been modified or corrupted after the backup process.
