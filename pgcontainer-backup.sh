@@ -1,5 +1,5 @@
 #!/bin/bash
-# filepath: ./backup.sh
+# filepath: ./pgcontainer-backup.sh
 
 # Define color variables
 YELLOW="\e[33m"
