@@ -99,6 +99,25 @@ CREATE ROLE backup_user WITH REPLICATION LOGIN PASSWORD 'yourPassword';
 
 ---
 
+Hier ist ein schön formulierter Abschnitt für die Checksum-Überprüfung, passend zum Stil deiner README:
+
+---
+
+## 🔍 Checksum Verification
+
+To verify the integrity of your backup files, you can use the generated SHA256 checksums. This ensures that none of the files have been modified or corrupted after the backup process.
+
+Use the following command to check all files inside a backup folder against the stored `checksum.sha256` file:
+
+```bash
+sha256sum $(find /path/to/backup -type f) | sha256sum --check /path/to/backup/checksum.sha256
+```
+
+✅ If everything is intact, you’ll see `OK` next to each file name.
+⚠️ If a file was changed or is missing, the output will show `FAILED`.
+
+---
+
 ## 🛠 Development To-Do
 
 * Add support for retention/rotation policies
