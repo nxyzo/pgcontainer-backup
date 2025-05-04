@@ -94,7 +94,7 @@ pg_<container_name>_YYYY-MM-DD_HH-MM-SS_full/
 * To properly back up the database, you need a dedicated backup user in the PostgreSQL container. You can create the user as follows:
 
 ```sql
-CREATE ROLE backup_user WITH REPLICATION LOGIN PASSWORD 'deinPasswort';
+CREATE ROLE backup_user WITH REPLICATION LOGIN PASSWORD 'yourPassword';
 ```
 
 ---

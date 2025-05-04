@@ -25,8 +25,8 @@ backup_output_folder_name=""
 ###
 
 # setup that a few vars are absolutly needed and must be set by user
-containerName=""    #set by user
-backupDirectory=""  #set by user
+container_name=""    #set by user
+backup_directory=""  #set by user
 postgres_user=""     #set by user backup_user
 postgres_password=""        #set by user 1234
 container_backup_lock_file_path="/tmp/backup.lock"
@@ -40,11 +40,11 @@ function parse_parameters() {
     while [[ "$#" -gt 0 ]]; do
         case "$1" in
             -n|--name)
-                containerName="$2"
+                container_name="$2"
                 shift 2
                 ;;
             -d|--destination)
-                backupDirectory="$2"
+                backup_directory="$2"
                 shift 2
                 ;;
             -u|--pg-user)
@@ -105,16 +105,16 @@ function log_verbose() {
 }
 
 #check if variable is set. Ff not it give an error
-function check_if_var_containerName_is_set() {
-    if [[ -z "$containerName" ]]; then
+function check_if_var_container_name_is_set() {
+    if [[ -z "$container_name" ]]; then
         echo -e "${RED}The container name is not set. If you need help type the "--help" parameter...${RESET}"
         return 1
     fi
 }
 
 #checks if a variable is set; prints an error if it is not
-function check_if_var_backupDirectory_is_set() {
-    if [[ -z "$backupDirectory" ]]; then
+function check_if_var_backup_directory_is_set() {
+    if [[ -z "$backup_directory" ]]; then
         echo -e "${RED}The destination for the backup is not set. If you need help type the "--help" parameter...${RESET}"
         return 1
     fi
@@ -195,9 +195,9 @@ function check_if_db_container_is_running() {
 	log_verbose "${YELLOW}Checking if Postgres DB is running...${RESET}"
 	
 	
-	local postgresStatus=$(docker ps --filter "name=$containerName" | tail -n +2) 
+	local postgresStatus=$(docker ps --filter "name=$container_name" | tail -n +2) 
 	if [[ -z "$postgresStatus" ]]; then
-		echo -e "${RED}The Container: $containerName does not apear be running. Exiting the process...${RESET}"
+		echo -e "${RED}The Container: $container_name does not apear be running. Exiting the process...${RESET}"
 		exit 1
 	else
 		log_verbose "${GREEN}Container is running...${RESET}"
@@ -209,7 +209,7 @@ function backupGenerateChecksum() {
     log_verbose "${YELLOW}Generating Checksum for Backup $backup_output_folder_name...${RESET}"
     
     #calculate the checksum for all files in the backup directory
-    sha256sum $(find "${backupDirectory%/}/${backup_output_folder_name%/}_full/${backup_output_folder_name%/}" -type f) | sha256sum > "${backupDirectory%/}/${backup_output_folder_name%/}_full/checksum.sha256"
+    sha256sum $(find "${backup_directory%/}/${backup_output_folder_name%/}_full/${backup_output_folder_name%/}" -type f) | sha256sum > "${backup_directory%/}/${backup_output_folder_name%/}_full/checksum.sha256"
 
     if [ "$?" -ne 0 ]; then
         return 1
@@ -223,10 +223,10 @@ function backupGenerateChecksum() {
 function clear_backup_tmp_folder() {
 
     #if the directory exists the directory will be deletet
-    local directory_exists=$(docker exec $containerName test -d "${container_tmp_backup_folder%/}/${backup_output_folder_name}" && echo "exists" || echo "not exists")
+    local directory_exists=$(docker exec $container_name test -d "${container_tmp_backup_folder%/}/${backup_output_folder_name}" && echo "exists" || echo "not exists")
     if [[ "$directory_exists" == "exists" ]]; then
         log_verbose "${YELLOW}Deleting temporary backup directory...${RESET}"
-        docker exec $containerName rm -r "${container_tmp_backup_folder%/}/${backup_output_folder_name}"
+        docker exec $container_name rm -r "${container_tmp_backup_folder%/}/${backup_output_folder_name}"
     fi
 
 }
@@ -235,10 +235,10 @@ function clear_backup_tmp_folder() {
 function create_backup_lock_file() {
 
     #creating bckup.lock file in db /tmp directory
-    local delete_backup_lock_file=$(docker exec $containerName test -f "$container_backup_lock_file_path" && echo "exists" || echo "not exists")
+    local delete_backup_lock_file=$(docker exec $container_name test -f "$container_backup_lock_file_path" && echo "exists" || echo "not exists")
     if [[ "$delete_backup_lock_file" == "not exists" ]]; then
         log_verbose "${YELLOW}Creating backup lock file...${RESET}"
-        docker exec $containerName touch "$container_backup_lock_file_path"
+        docker exec $container_name touch "$container_backup_lock_file_path"
     fi
     
 }
@@ -246,7 +246,7 @@ function create_backup_lock_file() {
 #check if backup.lock file exists or not
 function check_backup_lock_file() {
     #checks if an backups is already running
-    local check_if_backup_lock_file_exists=$(docker exec $containerName test -f "$container_backup_lock_file_path" && echo "exists" || echo "not exists")
+    local check_if_backup_lock_file_exists=$(docker exec $container_name test -f "$container_backup_lock_file_path" && echo "exists" || echo "not exists")
     if [[ "$check_if_backup_lock_file_exists" == "exists" ]]; then
         return 1
     fi
@@ -257,23 +257,23 @@ function check_backup_lock_file() {
 function delete_backup_lock_file() {
     
     #deleting the backup.lock fie in the db /tmp folder
-    local delete_backup_lock_file=$(docker exec $containerName test -f "$container_backup_lock_file_path" && echo "exists" || echo "not exists")
+    local delete_backup_lock_file=$(docker exec $container_name test -f "$container_backup_lock_file_path" && echo "exists" || echo "not exists")
     if [[ "$delete_backup_lock_file" == "exists" ]]; then
         log_verbose "${YELLOW}Deleting backup lock file...${RESET}"
-        docker exec $containerName rm "$container_backup_lock_file_path"
+        docker exec $container_name rm "$container_backup_lock_file_path"
     fi
 
 }
 
 #backup the current postgres db data and safe it in de /tmp folder
 function backup_postgres_db_container() {
-    log_verbose "${YELLOW}Starting PostgreSQL backup on container '$containerName'...${RESET}"
+    log_verbose "${YELLOW}Starting PostgreSQL backup on container '$container_name'...${RESET}"
     
     #set folder name with timestamp
-    backup_output_folder_name="pg_${containerName}_${timestamp}"
+    backup_output_folder_name="pg_${container_name}_${timestamp}"
 
     # Check if backup directory exists, create if necessary
-    local backup_dir_created=$(docker exec -e PGPASSWORD=$postgres_password "$containerName" \
+    local backup_dir_created=$(docker exec -e PGPASSWORD=$postgres_password "$container_name" \
     bash -c "mkdir -p "${container_tmp_backup_folder%/}/${backup_output_folder_name}" && echo 'Backup directory created'")
     
     if [[ -z "$backup_dir_created" ]]; then
@@ -282,7 +282,7 @@ function backup_postgres_db_container() {
     fi
     
     #run pg_basebackup inside the container
-    local backup_status=$(docker exec -e PGPASSWORD=$postgres_password "$containerName" \
+    local backup_status=$(docker exec -e PGPASSWORD=$postgres_password "$container_name" \
     bash -c "pg_basebackup -U $postgres_user -D "${container_tmp_backup_folder%/}/${backup_output_folder_name}" -Fp -Xs -P -v -R")
     
     #check if the pg_basebackup command succeeded
@@ -299,7 +299,7 @@ function copy_backup_files_from_container_to_output_folder() {
     
     log_verbose "${YELLOW}Copying backuped files in the host output directory...${RESET}"
 
-    docker cp $containerName:"${container_tmp_backup_folder%/}/${backup_output_folder_name}" $backupDirectory
+    docker cp $container_name:"${container_tmp_backup_folder%/}/${backup_output_folder_name}" $backup_directory
 
 }
 
@@ -308,7 +308,7 @@ function delete_backup_files_from_postgres_container() {
 
     log_verbose "${YELLOW}Deleting the themory backup in container${RESET}"
 
-    docker exec "$containerName" bash -c "rm -r ${container_tmp_backup_folder%/}/${backup_output_folder_name}"
+    docker exec "$container_name" bash -c "rm -r ${container_tmp_backup_folder%/}/${backup_output_folder_name}"
     
 }
 
@@ -317,14 +317,14 @@ function create_wrap_backup_directory_for_checksum() {
 
     log_verbose "${YELLOW}Creating wraping folder...${RESET}"
 
-    mkdir -p "${backupDirectory%/}/${backup_output_folder_name}_full" 
+    mkdir -p "${backup_directory%/}/${backup_output_folder_name}_full" 
 }
 
 #copy the backup folder in the wraping folder
 function copy_backup_folder_in_wrap_folder() {
     log_verbose "${YELLOW}Moving the bacup folder in the wrapping folder...${RESET}"
 
-    mv "${backupDirectory%/}/${backup_output_folder_name}" "${backupDirectory%/}/${backup_output_folder_name}_full"  
+    mv "${backup_directory%/}/${backup_output_folder_name}" "${backup_directory%/}/${backup_output_folder_name}_full"  
 }
 
 #needed vars
@@ -348,7 +348,7 @@ if ! check_if_docker_daemon_is_running; then
     fi
 fi
 
-if ! check_if_var_containerName_is_set; then
+if ! check_if_var_container_name_is_set; then
     exit 1
 fi
 
@@ -356,7 +356,7 @@ if ! check_if_db_container_is_running; then
     exit 1
 fi
 
-if ! check_if_var_backupDirectory_is_set; then
+if ! check_if_var_backup_directory_is_set; then
     exit 1
 fi
 
