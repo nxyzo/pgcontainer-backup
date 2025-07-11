@@ -364,7 +364,7 @@ function copy_backup_folder_in_wrap_folder() {
 function check_log_file_retention() {
     log_verbose "${YELLOW}Checking log file size${RESET}"
     local log_file_size=$(du -k "${backup_log_directory%/}/${backup_log_name}" | cut -f1)
-
+    #check if the log file size is bigger than the max log file size
     if [ "$log_file_size" -gt "$max_log_file_size" ]; then
        log_verbose "${YELLOW}Log file size is bigger than max log size. Rotating the logs...${RESET}"
        mv "${backup_log_directory%/}/${backup_log_name}" "${backup_log_directory%/}/${backup_log_name%/}_${timestamp}"
