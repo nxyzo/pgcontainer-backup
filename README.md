@@ -118,7 +118,7 @@ sha256sum $(find /path/to/backup -type f) | sha256sum --check /path/to/backup/ch
 
 * Add support for retention/rotation policies
 * Integrate email, discord or Slack notifications on backup success/failure
-* Add logging to file for long-term auditability
+* ~~Add logging to file for long-term auditability~~
 * Add backup encryption
 * Copy backup to remote location
 
