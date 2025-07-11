@@ -194,8 +194,8 @@ function check_if_docker_daemon_is_running() {
         if [[ $dockerStatus == "inactive" ]]; then
                 echo -e "${RED}Docker Daemon does not apear to be running on this system. Starting the Service ...${RESET}"
                 log_to_file "${RED}Docker Daemon does not apear to be running on this system. Starting the Service ...${RESET}"
-                sudo systemctl start docker
-                sudo systemctl start docker.socket
+                systemctl start docker
+                systemctl start docker.socket
         return 1
         else
                 log_verbose "${GREEN}Docker Daemon is running.${RESET}"
