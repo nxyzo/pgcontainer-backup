@@ -397,23 +397,7 @@ if [[ "$logging" == "true" ]]; then
    check_log_file_retention
 fi
 
-if ! check_if_docker_version_28_is_installed; then
-    echo -e "${RED}Docker Version 28.x is required. Exiting...${RESET}"
-    log_to_file "${RED}Docker Version 28.x is required. Exiting...${RESET}"
-    exit 1
-fi
-
-if ! check_if_docker_daemon_is_running; then
-    if ! wait_for_docker_service; then
-        exit 1
-    fi
-fi
-
 if ! check_if_var_container_name_is_set; then
-    exit 1
-fi
-
-if ! check_if_db_container_is_running; then
     exit 1
 fi
 
@@ -426,6 +410,22 @@ if ! check_if_var_postgres_user_is_set; then
 fi
 
 if ! check_if_var_postgres_password_is_set; then
+    exit 1
+fi
+
+if ! check_if_docker_version_28_is_installed; then
+    echo -e "${RED}Docker Version 28.x is required. Exiting...${RESET}"
+    log_to_file "${RED}Docker Version 28.x is required. Exiting...${RESET}"
+    exit 1
+fi
+
+if ! check_if_docker_daemon_is_running; then
+    if ! wait_for_docker_service; then
+        exit 1
+    fi
+fi
+
+if ! check_if_db_container_is_running; then
     exit 1
 fi
 
